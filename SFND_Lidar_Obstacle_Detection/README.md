@@ -1,6 +1,6 @@
 ## Lidar Detection
 
-![](media/ObstacleDetectionFPS.gif)
+![](media/mylidardetection.gif)
 
 
 Lidar Detection
