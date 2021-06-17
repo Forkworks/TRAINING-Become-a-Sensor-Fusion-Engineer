@@ -1,5 +1,5 @@
 /build/
 /.idea/
-/.directory/
-/.gitignore/
+.directory
+
 

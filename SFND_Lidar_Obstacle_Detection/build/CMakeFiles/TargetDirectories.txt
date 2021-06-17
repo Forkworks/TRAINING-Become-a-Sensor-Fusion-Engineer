@@ -1,3 +1,0 @@
-/home/ftheirs/SensorFusionEngineer/SFND_Lidar_Obstacle_Detection/build/CMakeFiles/rebuild_cache.dir
-/home/ftheirs/SensorFusionEngineer/SFND_Lidar_Obstacle_Detection/build/CMakeFiles/edit_cache.dir
-/home/ftheirs/SensorFusionEngineer/SFND_Lidar_Obstacle_Detection/build/CMakeFiles/environment.dir
