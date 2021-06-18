@@ -22,6 +22,40 @@ void ProcessPointClouds<PointT>::numPoints(typename pcl::PointCloud<PointT>::Ptr
     std::cout << cloud->points.size() << std::endl;
 }
 
+template<typename PointT>
+typename pcl::PointCloud<PointT>::Ptr ProcessPointClouds<PointT>::Tracking(typename pcl::PointCloud<PointT>::Ptr cloud, float filterRes, Eigen::Vector4f minPoint, Eigen::Vector4f maxPoint, Eigen::Vector4f minPoint_2, Eigen::Vector4f maxPoint_2)
+{
+    pcl::tracking::KLDAdaptiveParticleFilterTracker<pcl::PointXYZRGBA,pcl::tracking::ParticleXYZRPY>::Ptr tracker
+            (new pcl::tracking::KLDAdaptiveParticleFilterTracker<pcl::PointXYZRGBA, pcl::tracking::ParticleXYZRPY> (8));
+
+    //Set all parameters for  KLDAdaptiveParticleFilterOMPTracker
+    tracker->setMaximumParticleNum (1000);
+    tracker->setDelta (0.99);
+    tracker->setEpsilon (0.2);
+    tracker->setBinSize (bin_size);
+
+    //Set all parameters for  ParticleFilter
+    tracker_ = tracker;
+    tracker_->setTrans (Eigen::Affine3f::Identity ());
+    tracker_->setStepNoiseCovariance (default_step_covariance);
+    tracker_->setInitialNoiseCovariance (initial_noise_covariance);
+    tracker_->setInitialNoiseMean (default_initial_mean);
+    tracker_->setIterationNum (1);
+    tracker_->setParticleNum (600);
+    tracker_->setResampleLikelihoodThr(0.00);
+    tracker_->setUseNormal (false);
+
+
+
+}
+
+
+
+
+
+
+
+
 
 template<typename PointT>
 typename pcl::PointCloud<PointT>::Ptr ProcessPointClouds<PointT>::FilterCloud(typename pcl::PointCloud<PointT>::Ptr cloud, float filterRes, Eigen::Vector4f minPoint, Eigen::Vector4f maxPoint, Eigen::Vector4f minPoint_2, Eigen::Vector4f maxPoint_2)
