@@ -2,9 +2,9 @@
 Udaciy nanodegree
 
 
-Sensors AVailable with advantages and disadvantages
+Sensors Available with their respectful advantages and disadvantages
 
-![uber_setup](https://user-images.githubusercontent.com/85563304/122565905-598d6600-d01d-11eb-95a6-b9e78f2bcb2d.jpg)
+![uber_setup](https://user-images.githubusercontent.com/85563304/122566204-abce8700-d01d-11eb-9146-ed866362bf0e.jpg)
 
 
 Let us take a look at those sensor classes one-by one:
