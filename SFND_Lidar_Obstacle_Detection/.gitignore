@@ -1,5 +1,3 @@
 /build/
-/.idea/
-.directory
-
-
+/src/quiz/ransac/build/
+/src/quiz/cluster/build/
