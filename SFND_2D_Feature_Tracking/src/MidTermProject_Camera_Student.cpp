@@ -12,9 +12,14 @@
 #include <opencv2/features2d.hpp>
 #include <opencv2/xfeatures2d.hpp>
 #include <opencv2/xfeatures2d/nonfree.hpp>
-
 #include "dataStructures.h"
 #include "matching2D.hpp"
+
+
+#include <bits/stdc++.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 
 using namespace std;
 
@@ -62,6 +67,9 @@ int main(int argc, const char *argv[])
         // push image into data frame buffer
         DataFrame frame;
         frame.cameraImg = imgGray;
+        if (dataBuffer.size() == dataBufferSize)
+            dataBuffer.erase(dataBuffer.begin());
+
         dataBuffer.push_back(frame);
 
         //// EOF STUDENT ASSIGNMENT
@@ -71,20 +79,30 @@ int main(int argc, const char *argv[])
 
         // extract 2D keypoints from current image
         vector<cv::KeyPoint> keypoints; // create empty feature list for current image
-        string detectorType = "SHITOMASI";
+
 
         //// STUDENT ASSIGNMENT
         //// TASK MP.2 -> add the following keypoint detectors in file matching2D.cpp and enable string-based selection based on detectorType
         //// -> HARRIS, FAST, BRISK, ORB, AKAZE, SIFT
 
+        string detectorType = "SIFT";
+        bool bVisKey = false;
+
+        double t_detector; //time detector ms
+
         if (detectorType.compare("SHITOMASI") == 0)
         {
-            detKeypointsShiTomasi(keypoints, imgGray, false);
+            detKeypointsShiTomasi(keypoints, imgGray, t_detector, bVisKey);
+        }
+        else if (detectorType.compare("HARRIS") == 0)
+        {
+            detKeypointsHarris(keypoints,imgGray, t_detector, bVisKey);
         }
         else
         {
-            //...
+            detKeypointsModern(keypoints, imgGray, detectorType,t_detector, bVisKey);
         }
+
         //// EOF STUDENT ASSIGNMENT
 
         //// STUDENT ASSIGNMENT
@@ -96,7 +114,43 @@ int main(int argc, const char *argv[])
         if (bFocusOnVehicle)
         {
             // ...
+            vector<cv::KeyPoint> cropkeypoints;
+
+            for (auto it = keypoints.begin(); it != keypoints.end(); ++it)
+            {
+
+                if (vehicleRect.contains(cv::Point2i(int(it->pt.x),int(it->pt.y))))
+                {
+                    cropkeypoints.push_back(*it);
+                }
+            }
+
+            keypoints = cropkeypoints;
+
+            bool bviscrop = false; //Visualize resultant cropped keypoints
+            if (bviscrop)
+            {
+                cv::Mat visImage = img.clone();
+                cv::drawKeypoints(img, keypoints, visImage, cv::Scalar::all(-1), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+                cv::rectangle(visImage,vehicleRect,cv::Scalar(0,255,0));
+                string windowName = detectorType + " Detector Results";
+                cv::namedWindow(windowName, cv::WindowFlags::WINDOW_AUTOSIZE);
+                imshow(windowName, visImage);
+                cv::waitKey(0);
+
+                //SAVE
+
+                /*
+                string imgPrefixSave = "Keypoints/" + detectorType + "/";
+                string imgFullSavename = imgBasePath + imgPrefixSave + imgNumber.str() + "_" + to_string(keypoints.size()) + imgFileType;
+
+                imwrite(imgFullSavename, visImage);
+                */
+            }
+
+
         }
+
 
         //// EOF STUDENT ASSIGNMENT
 
@@ -116,17 +170,23 @@ int main(int argc, const char *argv[])
 
         // push keypoints and descriptor for current frame to end of data buffer
         (dataBuffer.end() - 1)->keypoints = keypoints;
+
         cout << "#2 : DETECT KEYPOINTS done" << endl;
 
         /* EXTRACT KEYPOINT DESCRIPTORS */
 
         //// STUDENT ASSIGNMENT
         //// TASK MP.4 -> add the following descriptors in file matching2D.cpp and enable string-based selection based on descriptorType
-        //// -> BRIEF, ORB, FREAK, AKAZE, SIFT
+        //// -> BRIEF (Binary), ORB (Binary), FREAK (Binary), AKAZE (Binary), SIFT(Hog)
 
+        /*After feature-detection-description, feature-matching is performed by using L1-norm or L2-norm for string
+         * based descriptors (SIFT, SURF, KAZE etc.) and Hamming distance for binary descriptors (AKAZE, ORB, BRISK etc.).
+        */
+        double t_descriptor;
         cv::Mat descriptors;
-        string descriptorType = "BRISK"; // BRIEF, ORB, FREAK, AKAZE, SIFT
-        descKeypoints((dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->cameraImg, descriptors, descriptorType);
+        string descriptorType = "ORB"; // BRIEF, ORB, FREAK, AKAZE, SIFT
+        descKeypoints((dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->cameraImg, descriptors, descriptorType, t_descriptor);
+
         //// EOF STUDENT ASSIGNMENT
 
         // push descriptors for current frame to end of data buffer
@@ -141,8 +201,8 @@ int main(int argc, const char *argv[])
 
             vector<cv::DMatch> matches;
             string matcherType = "MAT_BF";        // MAT_BF, MAT_FLANN
-            string descriptorType = "DES_BINARY"; // DES_BINARY, DES_HOG
-            string selectorType = "SEL_NN";       // SEL_NN, SEL_KNN
+            string descriptorTypeFamily = "DES_BINARY"; // DES_BINARY, DES_HOG
+            string selectorType = "SEL_KNN";       // SEL_NN, SEL_KNN
 
             //// STUDENT ASSIGNMENT
             //// TASK MP.5 -> add FLANN matching in file matching2D.cpp
@@ -150,12 +210,15 @@ int main(int argc, const char *argv[])
 
             matchDescriptors((dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints,
                              (dataBuffer.end() - 2)->descriptors, (dataBuffer.end() - 1)->descriptors,
-                             matches, descriptorType, matcherType, selectorType);
+                             matches, descriptorTypeFamily, matcherType, selectorType);
 
             //// EOF STUDENT ASSIGNMENT
 
             // store matches in current data frame
             (dataBuffer.end() - 1)->kptMatches = matches;
+
+            cout << detectorType << "and" << descriptorType << " found " << matches.size() << " matches in Image " << imgStartIndex + imgIndex << endl;
+
 
             cout << "#4 : MATCH KEYPOINT DESCRIPTORS done" << endl;
 
@@ -175,6 +238,20 @@ int main(int argc, const char *argv[])
                 cv::imshow(windowName, matchImg);
                 cout << "Press key to continue to next image" << endl;
                 cv::waitKey(0); // wait for key to be pressed
+
+
+
+                string imgPrefixSave = "Matches/" + detectorType + "and" + descriptorType + "/";
+                string imgFullSavename = imgBasePath + imgPrefixSave + imgNumber.str() + "_" + to_string(matches.size()) + "_" +
+                        to_string(t_detector) + "ms_" + to_string(t_descriptor) + "ms" + imgFileType;
+
+                string directory = imgBasePath + imgPrefixSave;
+
+                mkdir(directory.c_str(), 0777);
+
+                imwrite(imgFullSavename, matchImg);
+
+
             }
             bVis = false;
         }
