@@ -7,7 +7,7 @@
 
 Mid-Term Report Specifications
 
-MP.1 Data Buffer Opt 
+**MP.1 Data Buffer Opt** 
 
 ```
 // push image into data frame buffer
@@ -19,7 +19,7 @@ MP.1 Data Buffer Opt
         dataBuffer.push_back(frame);
 ```
 
-MP.2 Keypoint Detection
+**MP.2 Keypoint Detection**
 
 ```
         string detectorType = "SIFT";
@@ -61,7 +61,7 @@ void detKeypointsModern(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, std:
    detector->detect(img,keypoints);
 ```
 
-MP.3
+**MP.3**
 
 ```
 for (auto it = keypoints.begin(); it != keypoints.end(); ++it)
@@ -76,7 +76,7 @@ for (auto it = keypoints.begin(); it != keypoints.end(); ++it)
             keypoints = cropkeypoints;
 ```
 
-MP.4
+**MP.4**
 
 ```
     string descriptorType = "ORB"; // BRIEF, ORB, FREAK, AKAZE, SIFT
@@ -106,7 +106,7 @@ void descKeypoints(vector<cv::KeyPoint> &keypoints, cv::Mat &img, cv::Mat &descr
 ```
     extractor->compute(img, keypoints, descriptors);
 ```
-MP.5
+**MP.5**
 
 ```
 void matchDescriptors(std::vector<cv::KeyPoint> &kPtsSource, std::vector<cv::KeyPoint> &kPtsRef, cv::Mat &descSource, cv::Mat &descRef,
@@ -139,7 +139,7 @@ void matchDescriptors(std::vector<cv::KeyPoint> &kPtsSource, std::vector<cv::Key
     }
 ```
 
-MP.6
+**MP.6**
 
 ```
 else if (selectorType.compare("SEL_KNN") == 0)
@@ -160,22 +160,65 @@ else if (selectorType.compare("SEL_KNN") == 0)
         }
 ```
 
-MP.7
+**MP.7**
+
+Number of Keypoints for each detector in the preceding vehicle
+
 ![img.png](img.png)
 
-MP.8
+--
+
+![](images/Keypoints/AKAZE/0003_154.png)
+Akaze showing different neighborhood size for each keyponts. Density of keypoints are encountered in the contours of the car and not so much on the center of the tailgate. 
+
+--
+
+![](images/Keypoints/BRISK/0003_275.png)
+BRISK showing greater average sizes of keypoints than AKAZE.  
+
+--
+
+![](images/Keypoints/FAST/0002_404.png)
+FAST showing greater number of keypoints with constant size. Keypoints are found near the license plate compared to Akaze and Brisk which showed few to none.
+
+--
+
+![](images/Keypoints/HARRIS/0003_21.png)
+Harris showing far fewer points than the other detectors. Size is constant.
+
+--
+
+![](images/Keypoints/ORB/0004_109.png)
+ORB showing greater keypoint sizes than Brisk.
+
+--
+
+![](images/Keypoints/SIFT/0003_135.png)
+SIFT showing greater range of sizes. 
+
+--
+
+**MP.8**
 
 Showing the average matches of all 9 images with different combinations of detector/descriptor
-![img_1.png](img_1.png)
 
+![img_1.png](img_1.png)
 
 
 Note:: Apparently Akaze descriptor only works when using an AKAZE detector hence the NA on those cells.
 
-MP.9
+**MP.9**
 
 Showing the average total time (Detector+Descriptor) for all images.
+
 ![img_2.png](img_2.png)
 
 
+TOP 3 Combinations with respect to time
+
+**1.** FAST / BRIEF
+
+**2.** FAST / ORB
+
+**3.** ORB / BRIEF
 
