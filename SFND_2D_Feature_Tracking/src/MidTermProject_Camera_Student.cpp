@@ -85,7 +85,7 @@ int main(int argc, const char *argv[])
         //// TASK MP.2 -> add the following keypoint detectors in file matching2D.cpp and enable string-based selection based on detectorType
         //// -> HARRIS, FAST, BRISK, ORB, AKAZE, SIFT
 
-        string detectorType = "SIFT";
+        string detectorType = "FAST";
         bool bVisKey = false;
 
         double t_detector; //time detector ms
@@ -184,7 +184,7 @@ int main(int argc, const char *argv[])
         */
         double t_descriptor;
         cv::Mat descriptors;
-        string descriptorType = "ORB"; // BRIEF, ORB, FREAK, AKAZE, SIFT
+        string descriptorType = "BRIEF"; // BRIEF, ORB, FREAK, AKAZE, SIFT
         descKeypoints((dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->cameraImg, descriptors, descriptorType, t_descriptor);
 
         //// EOF STUDENT ASSIGNMENT
@@ -240,7 +240,8 @@ int main(int argc, const char *argv[])
                 cv::waitKey(0); // wait for key to be pressed
 
 
-
+                //Save
+                /*
                 string imgPrefixSave = "Matches/" + detectorType + "and" + descriptorType + "/";
                 string imgFullSavename = imgBasePath + imgPrefixSave + imgNumber.str() + "_" + to_string(matches.size()) + "_" +
                         to_string(t_detector) + "ms_" + to_string(t_descriptor) + "ms" + imgFileType;
@@ -250,6 +251,7 @@ int main(int argc, const char *argv[])
                 mkdir(directory.c_str(), 0777);
 
                 imwrite(imgFullSavename, matchImg);
+                 */
 
 
             }
