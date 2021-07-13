@@ -101,6 +101,7 @@ void detectObjects(cv::Mat& img, std::vector<BoundingBox>& bBoxes, float confThr
         
         cv::Mat visImg = img.clone();
         for(auto it=bBoxes.begin(); it!=bBoxes.end(); ++it) {
+
             
             // Draw rectangle displaying the bounding box
             int top, left, width, height;
