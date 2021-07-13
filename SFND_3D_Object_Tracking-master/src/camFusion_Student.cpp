@@ -8,6 +8,12 @@
 #include "camFusion.hpp"
 #include "dataStructures.h"
 
+#include <bits/stdc++.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
+
+
 using namespace std;
 
 
@@ -66,7 +72,7 @@ void clusterLidarWithROI(std::vector<BoundingBox> &boundingBoxes, std::vector<Li
 * However, you can make this function work for other sizes too.
 * For instance, to use a 1000x1000 size, adjusting the text positions by dividing them by 2.
 */
-void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize, cv::Size imageSize, bool bWait)
+void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize, cv::Size imageSize, bool bWait, std::string name_image)
 {
     // create topview image
     cv::Mat topviewImg(imageSize, CV_8UC3, cv::Scalar(255, 255, 255));
@@ -111,7 +117,11 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize, 
         sprintf(str1, "id=%d, #pts=%d", it1->boxID, (int)it1->lidarPoints.size());
         putText(topviewImg, str1, cv::Point2f(left-250, bottom+50), cv::FONT_ITALIC, 2, currColor);
         sprintf(str2, "xmin=%2.2f m, yw=%2.2f m", xwmin, ywmax-ywmin);
-        putText(topviewImg, str2, cv::Point2f(left-250, bottom+125), cv::FONT_ITALIC, 2, currColor);  
+        putText(topviewImg, str2, cv::Point2f(left-250, bottom+125), cv::FONT_ITALIC, 2, currColor);
+
+
+
+
     }
 
     // plot distance markers
@@ -132,6 +142,25 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize, 
     {
         cv::waitKey(0); // wait for key to be pressed
     }
+
+    /*
+    // data location
+    string dataPath = "../";
+
+    // camera
+    string imgBasePath = dataPath + "images/";
+
+    string imgPrefixSave = "Lidar3D/";
+    string imgFullSavename = imgBasePath + imgPrefixSave + name_image + ".png";
+
+    string directory = imgBasePath + imgPrefixSave;
+
+    mkdir(directory.c_str(), 0777);
+
+    imwrite(imgFullSavename, topviewImg);
+
+     */
+
 }
 
 
@@ -140,7 +169,7 @@ void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint
 {
 
     double distance;
-    double stddev;
+    double stddev = 0;
     int factorSTD = 1;
 
     std::vector<double> distances;
@@ -151,6 +180,8 @@ void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint
         auto key_prev = kptsPrev.at(mtch->queryIdx);
 
         //Calculate euclidean distances between matched keypoints in previous frame and current frame
+        // we expect the motion of the keypoints between frames to be represented by a rigid transform
+
         if (boundingBox.roi.contains(key_curr.pt))
         {
             distance = cv::norm(key_curr.pt - key_prev.pt);
@@ -175,7 +206,7 @@ void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint
 
         if (boundingBox.roi.contains(key_curr.pt))
         {
-            if (cv::norm(key_curr.pt - key_prev.pt) < (average_distance + factorSTD*stddev))
+            if (abs(cv::norm(key_curr.pt - key_prev.pt) - average_distance) < factorSTD*stddev)
             {
                 boundingBox.kptMatches.push_back(*mtch);
             }
@@ -261,7 +292,7 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
     double std_prev_x;
     double std_curr_x;
 
-    int factorSTD = 1;
+    double factorSTD = 1;
 
     averageLidarPointsX(lidarPointsPrev, mean_prev_x, std_prev_x);
     averageLidarPointsX(lidarPointsCurr, mean_curr_x, std_curr_x);
@@ -271,13 +302,13 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
     double minXPrev = 1e9, minXCurr = 1e9;
     for (auto & it : lidarPointsPrev)
     {
-        if (it.x < (mean_prev_x + factorSTD*std_prev_x)     and   it.x > (mean_prev_x - factorSTD*std_prev_x))
+        if (abs(it.x - mean_prev_x) < factorSTD*std_prev_x )
             minXPrev = minXPrev > it.x ? it.x : minXPrev;
     }
 
     for (auto & it : lidarPointsCurr)
     {
-        if (it.x < (mean_curr_x + factorSTD*std_curr_x)     and   it.x > (mean_curr_x - factorSTD*std_curr_x))
+        if (abs(it.x - mean_curr_x) < factorSTD*std_curr_x )
             minXCurr = minXCurr > it.x ? it.x : minXCurr;
     }
 
@@ -298,10 +329,12 @@ void averageLidarPointsX(std::vector<LidarPoint> &lidarPoints, double &averageLi
 
     averageLidar = sum / lidarPoints.size();
 
-    for (auto & lidarPoint : lidarPoints)
-        standardDeviation += pow(lidarPoint.x - averageLidar, 2);
+    sum=0;
 
-    standardDeviation = sqrt(standardDeviation / lidarPoints.size());
+    for (auto & lidarPoint : lidarPoints)
+        sum += pow(lidarPoint.x - averageLidar, 2);
+
+    standardDeviation = sqrt(sum / lidarPoints.size());
 
 
 }

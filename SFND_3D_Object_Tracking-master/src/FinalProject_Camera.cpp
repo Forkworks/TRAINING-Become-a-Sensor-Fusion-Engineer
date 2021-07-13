@@ -97,7 +97,7 @@ int main(int argc, const char *argv[])
 
 
         /* DETECT & CLASSIFY OBJECTS */
-        bVis = true;
+        bVis = false;
 
         float confThreshold = 0.2;
         float nmsThreshold = 0.25;
@@ -129,14 +129,14 @@ int main(int argc, const char *argv[])
         /* CLUSTER LIDAR POINT CLOUD */
 
         // associate Lidar points with camera-based ROI
-        float shrinkFactor = 0.10; // shrinks each bounding box by the given percentage to avoid 3D object merging at the edges of an ROI
+        float shrinkFactor = 0.25; // shrinks each bounding box by the given percentage to avoid 3D object merging at the edges of an ROI
         clusterLidarWithROI((dataBuffer.end()-1)->boundingBoxes, (dataBuffer.end() - 1)->lidarPoints, shrinkFactor, P_rect_00, R_rect_00, RT);
 
         // Visualize 3D objects
-        bVis = true;
+        bVis = false;
         if(bVis)
         {
-            show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size(20.0, 50.0), cv::Size(2000, 2000), true);
+            show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size(20.0, 50.0), cv::Size(2000, 2500), true, imgNumber.str());
         }
         bVis = false;
 
@@ -274,6 +274,16 @@ int main(int argc, const char *argv[])
 
             // store matches in current data frame
             (dataBuffer.end()-1)->bbMatches = bbBestMatches;
+
+            cout << "\nThe map bestmatches is : \n";
+            cout << "\tKEY\tELEMENT\n";
+            for (auto itr = bbBestMatches.begin(); itr != bbBestMatches.end(); ++itr)
+            {
+                cout << '\t' << itr->first
+                     << '\t' << itr->second << '\n';
+            }
+            cout << endl;
+
 
             cout << "#8 : TRACK 3D OBJECT BOUNDING BOXES done" << endl;
 
