@@ -143,7 +143,7 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize, 
         cv::waitKey(0); // wait for key to be pressed
     }
 
-    /*
+/*
     // data location
     string dataPath = "../";
 
@@ -158,8 +158,9 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize, 
     mkdir(directory.c_str(), 0777);
 
     imwrite(imgFullSavename, topviewImg);
+    */
 
-     */
+
 
 }
 
@@ -234,7 +235,7 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPo
         cv::KeyPoint kpOuterCurr = kptsCurr.at(it1->trainIdx);
         cv::KeyPoint kpOuterPrev = kptsPrev.at(it1->queryIdx);
 
-        for (auto it2 = kptMatches.begin() + 1; it2 != kptMatches.end(); ++it2) //No deberia ser it2 = it1 + 1  (?)
+        for (auto it2 = it1 + 1; it2 != kptMatches.end(); ++it2) //No deberia ser it2 = it1 + 1  (?)
         { // inner keypoint loop
 
             double minDist = 100.0; // min. required distance

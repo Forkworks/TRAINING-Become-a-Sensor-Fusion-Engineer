@@ -97,12 +97,12 @@ int main(int argc, const char *argv[])
 
 
         /* DETECT & CLASSIFY OBJECTS */
-        bVis = false;
+        bVis = true;
 
-        float confThreshold = 0.2;
-        float nmsThreshold = 0.25;
+        float confThreshold = 0.3;
+        float nmsThreshold = 0.15;
         detectObjects((dataBuffer.end() - 1)->cameraImg, (dataBuffer.end() - 1)->boundingBoxes, confThreshold, nmsThreshold,
-                      yoloBasePath, yoloClassesFile, yoloModelConfiguration, yoloModelWeights, bVis);
+                      yoloBasePath, yoloClassesFile, yoloModelConfiguration, yoloModelWeights, bVis, imgNumber.str());
 
         bVis = false;
 
@@ -118,7 +118,7 @@ int main(int argc, const char *argv[])
         loadLidarFromFile(lidarPoints, lidarFullFilename);
 
         // remove Lidar points based on distance properties
-        float minZ = -1.5, maxZ = -0.9, minX = 2.0, maxX = 30.0, maxY = 10.0, minR = 0.1; // focus on ego lane
+        float minZ = -1.5, maxZ = -0.9, minX = 2.0, maxX = 20.0, maxY = 2.0, minR = 0.1; // focus on ego lane
         cropLidarPoints(lidarPoints, minX, maxX, maxY, minZ, maxZ, minR);
     
         (dataBuffer.end() - 1)->lidarPoints = lidarPoints;
@@ -129,14 +129,14 @@ int main(int argc, const char *argv[])
         /* CLUSTER LIDAR POINT CLOUD */
 
         // associate Lidar points with camera-based ROI
-        float shrinkFactor = 0.25; // shrinks each bounding box by the given percentage to avoid 3D object merging at the edges of an ROI
+        float shrinkFactor = 0.35; // shrinks each bounding box by the given percentage to avoid 3D object merging at the edges of an ROI
         clusterLidarWithROI((dataBuffer.end()-1)->boundingBoxes, (dataBuffer.end() - 1)->lidarPoints, shrinkFactor, P_rect_00, R_rect_00, RT);
 
         // Visualize 3D objects
-        bVis = false;
+        bVis = true;
         if(bVis)
         {
-            show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size(20.0, 50.0), cv::Size(2000, 2500), true, imgNumber.str());
+            show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size(4.0, 20.0), cv::Size(2000, 2000), true, imgNumber.str());
         }
         bVis = false;
 
@@ -158,7 +158,7 @@ int main(int argc, const char *argv[])
         ///////////////////
         ///////////////////
 
-        string detectorType = "HARRIS";
+        string detectorType = "ORB";
         bool bVisKey = false;
 
         double t_detector; //time detector ms
@@ -229,7 +229,7 @@ int main(int argc, const char *argv[])
 
         double t_descriptor;
         cv::Mat descriptors;
-        string descriptorType = "BRIEF"; // BRIEF, ORB, FREAK, AKAZE, SIFT
+        string descriptorType = "ORB"; // BRIEF, ORB, FREAK, AKAZE, SIFT
         descKeypoints((dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->cameraImg, descriptors, descriptorType, t_descriptor);
 
 
