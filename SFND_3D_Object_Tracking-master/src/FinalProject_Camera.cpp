@@ -20,6 +20,12 @@
 #include "lidarData.hpp"
 #include "camFusion.hpp"
 
+
+#include <bits/stdc++.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
+
 using namespace std;
 
 /* MAIN PROGRAM */
@@ -97,7 +103,7 @@ int main(int argc, const char *argv[])
 
 
         /* DETECT & CLASSIFY OBJECTS */
-        bVis = true;
+        bVis = false;
 
         float confThreshold = 0.3;
         float nmsThreshold = 0.15;
@@ -133,7 +139,7 @@ int main(int argc, const char *argv[])
         clusterLidarWithROI((dataBuffer.end()-1)->boundingBoxes, (dataBuffer.end() - 1)->lidarPoints, shrinkFactor, P_rect_00, R_rect_00, RT);
 
         // Visualize 3D objects
-        bVis = true;
+        bVis = false;
         if(bVis)
         {
             show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size(4.0, 20.0), cv::Size(2000, 2000), true, imgNumber.str());
@@ -229,7 +235,7 @@ int main(int argc, const char *argv[])
 
         double t_descriptor;
         cv::Mat descriptors;
-        string descriptorType = "ORB"; // BRIEF, ORB, FREAK, AKAZE, SIFT
+        string descriptorType = "BRIEF"; // BRIEF, ORB, FREAK, AKAZE, SIFT
         descKeypoints((dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->cameraImg, descriptors, descriptorType, t_descriptor);
 
 
@@ -251,12 +257,12 @@ int main(int argc, const char *argv[])
 
             vector<cv::DMatch> matches;
             string matcherType = "MAT_BF";        // MAT_BF, MAT_FLANN
-            string descriptorType = "DES_BINARY"; // DES_BINARY, DES_HOG
+            string descriptorTypeFamily = "DES_BINARY"; // DES_BINARY, DES_HOG
             string selectorType = "SEL_NN";       // SEL_NN, SEL_KNN
 
             matchDescriptors((dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints,
                              (dataBuffer.end() - 2)->descriptors, (dataBuffer.end() - 1)->descriptors,
-                             matches, descriptorType, matcherType, selectorType);
+                             matches, descriptorTypeFamily, matcherType, selectorType);
 
             // store matches in current data frame
             (dataBuffer.end() - 1)->kptMatches = matches;
@@ -344,6 +350,25 @@ int main(int argc, const char *argv[])
                         cv::imshow(windowName, visImg);
                         cout << "Press key to continue to next frame" << endl;
                         cv::waitKey(0);
+
+
+
+
+
+                        string imgPrefixSave = "TTC/" + detectorType + "and" + descriptorType + "/";
+                        string imgFullSavename = imgBasePath + imgPrefixSave + imgNumber.str() + imgFileType;
+
+                        string directory = imgBasePath + imgPrefixSave;
+
+                        mkdir(directory.c_str(), 0777);
+
+                        imwrite(imgFullSavename, visImg);
+
+
+
+
+
+
                     }
                     bVis = false;
 

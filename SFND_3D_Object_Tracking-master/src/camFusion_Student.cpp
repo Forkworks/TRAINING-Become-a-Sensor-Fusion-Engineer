@@ -158,8 +158,8 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize, 
     mkdir(directory.c_str(), 0777);
 
     imwrite(imgFullSavename, topviewImg);
-    */
 
+*/
 
 
 }
