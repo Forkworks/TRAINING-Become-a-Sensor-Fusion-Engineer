@@ -170,7 +170,7 @@ void averageLidarPointsX(std::vector<LidarPoint> &lidarPoints, double &averageLi
 
 # **FP.3**
 
-To associate matches to bounding boxes we first calculate the euclidean distance between the current and the previous hoping ot get a rigid transform between frames. And then proceed to caclulate average and standard deviation of the vector of distances in the bounding box.
+To associate matches to bounding boxes we first calculate the euclidean distance between the current and the previous hoping to get a rigid transform between frames. And then proceed to caclulate average and standard deviation of the vector of distances in the bounding box.
 
 ```
 void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPoint> &kptsCurr, std::vector<cv::DMatch> &kptMatches)
@@ -302,9 +302,17 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPo
 
 ![](./images/TTC/0003.png)
 
+
 Between these two frames we see a 100% increase in TTC. If we look at the top view images from lidar we see that the delta in the denominator of the TTC calculation taking into account all values is the same but because we did fltering using the standard deviation we dont use the overall minimum point.
+
+If we use the overall minimum coordinate in x we get a TTC of 13.91 seconds instead of 21 seconds.
+
+![](./images/Lidar3D/0002.png)
+
+![](./images/Lidar3D/0003.png)
 
 ## **FP.6**
 
+In this graph we can compare TTC from different descriptor/detector combinations and compare them frame by frame including the TTC coming from the Lidar. Two of the combinations that showed a more stable measurement along frames was the FAST/ORB and FAST/BRIEF combination with a small error with respect to the TTC Lidar. 
 
 ![](./images/Graphs/comparison.png)
