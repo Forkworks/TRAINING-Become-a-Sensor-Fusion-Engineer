@@ -9,13 +9,17 @@
 
 #include "objectDetection2D.hpp"
 
+#include <bits/stdc++.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 
 using namespace std;
 
 // detects objects in an image using the YOLO library and a set of pre-trained objects from the COCO database;
 // a set of 80 classes is listed in "coco.names" and pre-trained weights are stored in "yolov3.weights"
 void detectObjects(cv::Mat& img, std::vector<BoundingBox>& bBoxes, float confThreshold, float nmsThreshold, 
-                   std::string basePath, std::string classesFile, std::string modelConfiguration, std::string modelWeights, bool bVis)
+                   std::string basePath, std::string classesFile, std::string modelConfiguration, std::string modelWeights, bool bVis, std::string name_image)
 {
     // load class names from file
     vector<string> classes;
@@ -128,5 +132,28 @@ void detectObjects(cv::Mat& img, std::vector<BoundingBox>& bBoxes, float confThr
         cv::namedWindow( windowName, 1 );
         cv::imshow( windowName, visImg );
         cv::waitKey(0); // wait for key to be pressed
+
+
+/*
+    // data location
+    string dataPath = "../";
+
+    // camera
+    string imgBasePath = dataPath + "images/";
+
+    string imgPrefixSave = "ObjectDetection/";
+    string imgFullSavename = imgBasePath + imgPrefixSave + name_image + ".png";
+
+    string directory = imgBasePath + imgPrefixSave;
+
+    mkdir(directory.c_str(), 0777);
+
+    imwrite(imgFullSavename, visImg);
+*/
+
+
+
+
+
     }
 }

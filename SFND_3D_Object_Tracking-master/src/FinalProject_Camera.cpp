@@ -20,6 +20,12 @@
 #include "lidarData.hpp"
 #include "camFusion.hpp"
 
+
+#include <bits/stdc++.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
+
 using namespace std;
 
 /* MAIN PROGRAM */
@@ -97,12 +103,12 @@ int main(int argc, const char *argv[])
 
 
         /* DETECT & CLASSIFY OBJECTS */
-        bVis = true;
+        bVis = false;
 
-        float confThreshold = 0.2;
-        float nmsThreshold = 0.25;
+        float confThreshold = 0.3;
+        float nmsThreshold = 0.15;
         detectObjects((dataBuffer.end() - 1)->cameraImg, (dataBuffer.end() - 1)->boundingBoxes, confThreshold, nmsThreshold,
-                      yoloBasePath, yoloClassesFile, yoloModelConfiguration, yoloModelWeights, bVis);
+                      yoloBasePath, yoloClassesFile, yoloModelConfiguration, yoloModelWeights, bVis, imgNumber.str());
 
         bVis = false;
 
@@ -118,7 +124,7 @@ int main(int argc, const char *argv[])
         loadLidarFromFile(lidarPoints, lidarFullFilename);
 
         // remove Lidar points based on distance properties
-        float minZ = -1.5, maxZ = -0.9, minX = 2.0, maxX = 30.0, maxY = 10.0, minR = 0.1; // focus on ego lane
+        float minZ = -1.5, maxZ = -0.9, minX = 2.0, maxX = 20.0, maxY = 2.0, minR = 0.1; // focus on ego lane
         cropLidarPoints(lidarPoints, minX, maxX, maxY, minZ, maxZ, minR);
     
         (dataBuffer.end() - 1)->lidarPoints = lidarPoints;
@@ -129,14 +135,14 @@ int main(int argc, const char *argv[])
         /* CLUSTER LIDAR POINT CLOUD */
 
         // associate Lidar points with camera-based ROI
-        float shrinkFactor = 0.10; // shrinks each bounding box by the given percentage to avoid 3D object merging at the edges of an ROI
+        float shrinkFactor = 0.35; // shrinks each bounding box by the given percentage to avoid 3D object merging at the edges of an ROI
         clusterLidarWithROI((dataBuffer.end()-1)->boundingBoxes, (dataBuffer.end() - 1)->lidarPoints, shrinkFactor, P_rect_00, R_rect_00, RT);
 
         // Visualize 3D objects
-        bVis = true;
+        bVis = false;
         if(bVis)
         {
-            show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size(20.0, 50.0), cv::Size(2000, 2000), true);
+            show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size(4.0, 20.0), cv::Size(2000, 2000), true, imgNumber.str());
         }
         bVis = false;
 
@@ -158,7 +164,7 @@ int main(int argc, const char *argv[])
         ///////////////////
         ///////////////////
 
-        string detectorType = "HARRIS";
+        string detectorType = "ORB";
         bool bVisKey = false;
 
         double t_detector; //time detector ms
@@ -251,12 +257,12 @@ int main(int argc, const char *argv[])
 
             vector<cv::DMatch> matches;
             string matcherType = "MAT_BF";        // MAT_BF, MAT_FLANN
-            string descriptorType = "DES_BINARY"; // DES_BINARY, DES_HOG
+            string descriptorTypeFamily = "DES_BINARY"; // DES_BINARY, DES_HOG
             string selectorType = "SEL_NN";       // SEL_NN, SEL_KNN
 
             matchDescriptors((dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints,
                              (dataBuffer.end() - 2)->descriptors, (dataBuffer.end() - 1)->descriptors,
-                             matches, descriptorType, matcherType, selectorType);
+                             matches, descriptorTypeFamily, matcherType, selectorType);
 
             // store matches in current data frame
             (dataBuffer.end() - 1)->kptMatches = matches;
@@ -274,6 +280,16 @@ int main(int argc, const char *argv[])
 
             // store matches in current data frame
             (dataBuffer.end()-1)->bbMatches = bbBestMatches;
+
+            cout << "\nThe map bestmatches is : \n";
+            cout << "\tKEY\tELEMENT\n";
+            for (auto itr = bbBestMatches.begin(); itr != bbBestMatches.end(); ++itr)
+            {
+                cout << '\t' << itr->first
+                     << '\t' << itr->second << '\n';
+            }
+            cout << endl;
+
 
             cout << "#8 : TRACK 3D OBJECT BOUNDING BOXES done" << endl;
 
@@ -334,6 +350,25 @@ int main(int argc, const char *argv[])
                         cv::imshow(windowName, visImg);
                         cout << "Press key to continue to next frame" << endl;
                         cv::waitKey(0);
+
+
+
+
+
+                        string imgPrefixSave = "TTC/" + detectorType + "and" + descriptorType + "/";
+                        string imgFullSavename = imgBasePath + imgPrefixSave + imgNumber.str() + imgFileType;
+
+                        string directory = imgBasePath + imgPrefixSave;
+
+                        mkdir(directory.c_str(), 0777);
+
+                        imwrite(imgFullSavename, visImg);
+
+
+
+
+
+
                     }
                     bVis = false;
 
