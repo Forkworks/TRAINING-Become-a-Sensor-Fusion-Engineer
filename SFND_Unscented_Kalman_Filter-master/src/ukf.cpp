@@ -32,10 +32,10 @@ UKF::UKF() {
   P_ = MatrixXd(n_x_, n_x_);
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  std_a_ = 1;
+  std_a_ = 5;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 1;
+  std_yawdd_ = 5;
   
   /**
    * DO NOT MODIFY measurement noise values below.
@@ -87,38 +87,55 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
    */
     if (!is_initialized_)
     {
-        x_.fill(0.5);
 
-        P_<< 1000,0,0,0,0,
-                0,1000,0,0,0,
-                0,0,1000,0,0,
-                0,0,0,1000,0,
-                0,0,0,0,1000;
-
-        Xsig_pred_.fill(0.2);
-
-        // set weights
-        double weight_0 = lambda_/(lambda_+n_aug_);
-        weights_(0) = weight_0;
-        for (int i=1; i<2*n_aug_+1; ++i) // 2n+1 weight
+        if (meas_package.sensor_type_ == MeasurementPackage::LASER)
         {
-            double weight = 0.5/(n_aug_+lambda_);
-            weights_(i) = weight;
+            x_.head(2)=meas_package.raw_measurements_;
+
+        }
+        else if (meas_package.sensor_type_ == MeasurementPackage::RADAR)
+        {
+            x_(2)= 0;  //meas_package.raw_measurements_(0);
+            x_(3)= 0; //meas_package.raw_measurements_(1);
+            x_(4)= 0; //meas_package.raw_measurements_(2);
+
+            P_<< 0.5,0,0,0,0,
+                    0,0.5,0,0,0,
+                    0,0,0.5,0,0,
+                    0,0,0,0.5,0,
+                    0,0,0,0,0.5;
+
+            // set weights
+            double weight_0 = lambda_/(lambda_+n_aug_);
+            weights_(0) = weight_0;
+            for (int i=1; i<2*n_aug_+1; ++i) // 2n+1 weight
+            {
+                double weight = 0.5/(n_aug_+lambda_);
+                weights_(i) = weight;
+            }
+
+            is_initialized_ = true;
+
+
+            Prediction(1.0 / 30.0);
+
+            std::cout << x_ << std::endl;
         }
 
-        is_initialized_ = true;
-
     }
+    else
+    {
+
+        if (meas_package.sensor_type_ == MeasurementPackage::LASER) {
+            UpdateLidar(meas_package);
 
 
-    if (meas_package.sensor_type_ == MeasurementPackage::LASER)
-    {
-        UpdateLidar(meas_package);
-        Prediction(1.0/30.0);
-    }
-    else if (meas_package.sensor_type_ == MeasurementPackage::RADAR)
-    {
-        UpdateRadar(meas_package);
+        } else if (meas_package.sensor_type_ == MeasurementPackage::RADAR) {
+            std::cout << meas_package.raw_measurements_ << std::endl;
+            UpdateRadar(meas_package);
+            Prediction(1.0 / 30.0);
+
+        }
 
     }
 
