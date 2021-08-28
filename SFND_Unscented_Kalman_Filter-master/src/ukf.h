@@ -41,7 +41,7 @@ class UKF {
    */
   void UpdateRadar(MeasurementPackage meas_package);
 
-  void GenerateSigmaPoints(Eigen::MatrixXd* Xsig_out);
+  //void GenerateSigmaPoints();
 
   void AugmentedSigmaPoints(Eigen::MatrixXd& Xsig_out);
 
